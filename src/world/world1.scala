@@ -1,4 +1,4 @@
-package prg1.support.world
+package prg1.support.world1
 
 import scala.sys.exit
 
@@ -20,8 +20,6 @@ abstract class World[State](_state: State, tick_ms: Int) {
   def dooms_day(message: String) = { throw new DoomsDay(message) }
 
   def tick(state: State): World[State]
-  def draw(): Unit
-  def keyEvent(key: String): World[State]
 
   // todo: driver(state, p) に変更したい
   def driver(world: World[State], p: Promise[State]): Future[World[State]] = {
@@ -56,14 +54,12 @@ class IncrementWorld(state: IWState, tick_ms: Int) extends World[IWState](state,
   override def tick(state: IWState) = {
     IncrementWorld(state + 1, tick_ms)
   }
-  def draw() = ()
-  def keyEvent(key: String) = IncrementWorld(state, tick_ms)
 
   override def toString() = s"IncrementWorld($state)"
 }
 
 @main
-def world_test = {
+def increment_main = {
   type State = Int
   val world = IncrementWorld(0, 1000)
   world.bigbang()
@@ -100,9 +96,6 @@ object DFADemoObject {
         }
       }
     }
-
-    def draw() = ()
-    def keyEvent(key: String) = DFA_World(state, tick_ms)
   }
 
   def transition(state: DFA_State, input: Char): String =

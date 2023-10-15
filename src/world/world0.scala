@@ -1,4 +1,4 @@
-package obsolete.world
+package prg1.support.world0
 
 import scala.concurrent._
 import scala.concurrent.duration._
