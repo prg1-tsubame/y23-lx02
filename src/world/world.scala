@@ -11,6 +11,7 @@ import ExecutionContext.Implicits.global
 // Scaladoc for scala-swing_3
 // https://javadoc.io/doc/org.scala-lang.modules/scala-swing_3/latest/index.html
 import scala.swing.Swing._
+import scala.swing.event._
 import scala.swing.{Frame, Panel}
 
 object World {
@@ -65,9 +66,18 @@ object World2D {
 
   var world: Option[World2D] = None
 
+  def connect(f : World2D => Unit): Unit = {
+    world match {
+      case Some(w) => f(w)
+      case _ => ()
+    }
+  }
+
   val canvas: Panel = new Panel {
     background = new Color(255, 255, 255)
     preferredSize = (100, 100)
+    focusable = true
+    listenTo(mouse.clicks, mouse.moves, keys)
 
     override def paintComponent(g: Graphics2D) = {
       super.paintComponent(g)
@@ -77,10 +87,15 @@ object World2D {
       g.setColor(new Color(255, 255, 255))
       g.fillRect(0, 0, w, h)
 
-      world match {
-        case Some(w: World2D) => w.draw(g)
-        case _ => ()
-      }
+      connect((w: World2D) => w.draw(g))
+    }
+
+    reactions += {
+      case e: MousePressed => println("mouse pressed")
+      case e: MouseDragged => println("mouse dragged")
+      case e: MouseReleased => println("mouse released")
+      case KeyTyped(_, c, _, _) => connect((w: World2D) => w.keyTyped(c))
+      case _: FocusLost => repaint()
     }
   }
 }
@@ -93,6 +108,7 @@ abstract class World2D(tick_ms: Int) extends World(tick_ms) {
   World2D.canvas.repaint()
 
   def draw(g: Graphics2D): Unit
+  def keyTyped(c: Char) = ()
 
   def bigbang(window_title: String, width: Int, height: Int) = {
     println(window_title)

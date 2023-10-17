@@ -26,6 +26,8 @@ case class Counter(n: Int, tick_ms: Int) extends World2D(tick_ms) {
     g.setFont(Counter.ARIAL120B)
     g.drawString(s"$n", w.toInt / 2, h.toInt / 2)
   }
+
+  override def keyTyped(c: Char) = println(c)
 }
 
 @main def run = Counter(0, 1000).bigbang("Animate World", 1024, 800)
