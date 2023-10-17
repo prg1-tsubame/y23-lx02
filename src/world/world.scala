@@ -25,12 +25,15 @@ abstract class World(tick_ms: Int) {
       } catch {
         case e: Exception => {
           e match {
-            case e: DoomsDay => println(e.getMessage())
-            case _ => e.printStackTrace(); Console.err.println("Terminating the World from an exception.")
+            case _: DoomsDay => { println(e.getMessage()) }
+            case _ => {
+              e.printStackTrace()
+              Console.err.println("Exception.")
+            }
           }
-          scala.sys.exit()
-          throw e
         }
+        scala.sys.exit()
+        world
       }
     }
     for world: World <- f do { driver(world, p) }
