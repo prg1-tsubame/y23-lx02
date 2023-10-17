@@ -18,8 +18,11 @@ abstract class World(tick_ms: Int) {
   def driver(world: World, p: Promise[World]): Future[World] = {
     val f = Future {
       blocking { Thread.sleep(tick_ms) }
-      try { world.tick() }
-      catch {
+      try {
+        val w = world.tick()
+        G.world = Some(w)
+        w
+      } catch {
         case e: Exception => {
           e match {
             case e: DoomsDay => println(e.getMessage())
@@ -111,3 +114,77 @@ object DFADemoObject {
     DFA_World("1100101".toList, "q", transition, accept, 1000).bigbang()
   }
 }
+
+import java.awt.{Color, Font, Graphics, Graphics2D, Point}
+
+// Scaladoc for scala-swing_3
+// https://javadoc.io/doc/org.scala-lang.modules/scala-swing_3/latest/index.html
+import scala.swing.Swing._
+import scala.swing.{Frame, Panel}
+
+object G {
+  var world: Option[World] = None
+
+  val canvas: Panel = new Panel {
+    background = new Color(255, 255, 255)
+    preferredSize = (100, 100)
+
+    override def paintComponent(g: Graphics2D) = {
+      super.paintComponent(g)
+
+      val w = size.width.toInt
+      val h = size.height.toInt
+      g.setColor(new Color(255, 255, 255))
+      g.fillRect(0, 0, w, h)
+
+      world match {
+        case Some(w: World2D) => w.draw(g)
+        case _ => ()
+      }
+    }
+  }
+}
+
+abstract class World2D(tick_ms: Int) extends World(tick_ms) {
+  def draw(g: Graphics2D): Unit
+
+  def bigbang(window_title: String, width: Int, height: Int) = {
+    println(window_title)
+    G.canvas.preferredSize = (width, height)
+
+    val frame = new Frame {
+      title = window_title
+      contents = G.canvas
+      pack()
+      centerOnScreen()
+      open()
+    }
+    super.bigbang()   // Start timer
+  }
+}
+
+object AnimateWorld {
+  val FONT = new Font("Arial", Font.BOLD, 120)
+}
+
+case class AnimateWorld(n: Int, tick_ms: Int) extends World2D(tick_ms) {
+  override def tick() = {
+    if (n == 10) throw new Exception("Some error")
+    //if (n == 3) dooms_day("End of the world")
+    println(s"world::tick ($n)")
+    // println(s"canvas@${G.canvas.hashCode}")
+    G.canvas.repaint()
+    AnimateWorld(n + 1, tick_ms)
+  }
+
+  override def draw(g: Graphics2D) = {
+    val w = G.canvas.size.width.toInt
+    val h = G.canvas.size.height.toInt
+    println(s"draw ($n - $w x $h)")
+    g.setColor(new Color(0, 0, 0))
+    g.setFont(AnimateWorld.FONT)
+    g.drawString(s"$n", w / 2, h / 2)
+  }
+}
+
+@main def animate = AnimateWorld(0, 1000).bigbang("Animate World", 1024, 800)
