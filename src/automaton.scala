@@ -47,4 +47,4 @@ case class DFA(input: Input, q: State, tick_ms: Int) extends World(tick_ms) {
     val accept = List("q001")
 }
 
-@main def run = DFA("1100101".toList, "q", 1000).bigbang()
+@main def run = World.bigbang(DFA("1100101".toList, "q", 1000))
